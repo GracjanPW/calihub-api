@@ -1,19 +1,20 @@
+from typing import Optional
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
 
 # region: modals
 class CreateExercise(BaseModel):
     name: str
-    description: str | None = None
+    description: Optional[str] = None
     muscle_group: str
-    equipment: str | None = None
+    equipment: Optional[list[str]] = None
     difficulty: int
 
-class UpdateExercise():
-    description: str | None = None
-    equipment: str | None = None
-    difficulty: int | None = None
-    muscle_group: str | None = None
+class UpdateExercise(BaseModel):
+    description: Optional[str] = None
+    equipment: Optional[list[str]] = None
+    difficulty: Optional[int] = None
+    muscle_group: Optional[str] = None
 
 class Exercise(CreateExercise):
     id: int
@@ -22,12 +23,12 @@ class ReturnExercises(BaseModel):
     data: list[Exercise]
 
 class ReturnExercise(BaseModel):
-    data: Exercise | None
-    message: str | None = None
+    data: Optional[Exercise] = None
+    message: Optional[str] = None
 
 class ReturnExerciseId(BaseModel):
-    id: int | None
-    message: str | None = None
+    id: Optional[int] = None
+    message: Optional[str] = None
 
 
 # endregion: modals
