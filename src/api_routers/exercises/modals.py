@@ -24,6 +24,9 @@ class Exercise(CreateExercise):
 
 class ReturnExercises(BaseModel):
     data: list[Exercise]
+    total: int
+    page: int
+    limit: int
 
 
 class ReturnExercise(BaseModel):

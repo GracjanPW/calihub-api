@@ -1,11 +1,38 @@
+from typing import Optional
 import psycopg
 
 
-async def get_exercises(conn):
-    async with conn.cursor(row_factory=psycopg.rows.dict_row) as cursor:
-        await cursor.execute("SELECT * FROM exercises")
-        res = await cursor.fetchall()
-    return res
+async def get_exercises(
+    conn, 
+    name:Optional[str] = None, 
+    category: Optional[str] = None,     
+    difficulty: Optional[str] = None, 
+    page: int = 1, 
+    limit: int = 10
+):
+    query = "SELECT * FROM exercises WHERE 1 = 1"
+    filters = ""
+    params = []
+    if name:
+        filters += " AND name ILIKE %s"
+        params.append(f"%{name}%")
+    if category:
+        filters += " AND muscle_group = %s"
+        params.append(category)
+    if difficulty:
+        filters += " AND difficulty = %s"
+        params.append(difficulty)
+    limit_filter = " ORDER BY name LIMIT %s OFFSET %s"
+    params.extend([limit, (page - 1) * limit])
+
+    async with conn.transaction():
+        async with conn.cursor(row_factory=psycopg.rows.dict_row) as cursor:
+            await cursor.execute(query+filters+limit_filter, (*params,))    
+            exercises = await cursor.fetchall()
+            await cursor.execute("SELECT COUNT(*) FROM exercises WHERE 1=1"+filters, (*params[:-2],))
+            total = (await cursor.fetchone())['count']
+    
+    return exercises, total
 
 
 async def get_exercise(conn, exercise_id):

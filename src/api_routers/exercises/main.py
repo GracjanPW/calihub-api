@@ -1,5 +1,6 @@
+from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Query, Response, status
 import psycopg
 from src.api_routers.exercises import controller as ExerciseController
 
@@ -9,11 +10,22 @@ from src.db import get_db
 router = APIRouter()
 
 
-@router.get("/exercises/", status_code=status.HTTP_200_OK)
-async def get_exercises(conn=Depends(get_db)) -> ReturnExercises:
-    res = await ExerciseController.get_exercises(conn)
-    return ReturnExercises(data=res)
+@router.get("/exercises", status_code=status.HTTP_200_OK)
+async def get_exercises(
+    name: Optional[str] = Query(None, alias="search", description="Search exercises by name"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    difficulty: Optional[str] = Query(None, description="Filter by difficulty level"),
+    page: int = Query(1, ge=1, description="Page number (1-based index)"),
+    limit: int = Query(10, le=100, description="Number of items per page (max 100)"),
+    conn=Depends(get_db)
+) -> ReturnExercises:
+    # Get exercises from controller with search, filters, and pagination
+    res, total = await ExerciseController.get_exercises(
+        conn, name=name, category=category, difficulty=difficulty, page=page, limit=limit
+    )
 
+    # Return exercises data, total count, current page, and limit
+    return ReturnExercises(data=res, total=total, page=page, limit=limit)
 
 @router.get("/exercises/{exercise_id}", status_code=status.HTTP_200_OK)
 async def get_exercise(exercise_id: UUID, response: Response, conn=Depends(get_db)) -> ReturnExercise:

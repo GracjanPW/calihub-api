@@ -23,6 +23,7 @@ def reset_db():
     # db_connection.execute("DELETE FROM users;")  # Just an example
     yield
     # Optionally, do cleanup after all tests are done
+    subprocess.run(["python", script_path], check=True)
 
 
 def test_get_exercises_ok():
@@ -31,6 +32,26 @@ def test_get_exercises_ok():
     json = response.json()
     valid = ReturnExercises(**json)
     assert type(valid.data) == list
+    assert valid.total > 10
+
+def test_get_exercises_ok_search():
+    response = client.get("/api/exercises?search=bench%press")
+    assert response.status_code == 200
+    json = response.json()
+    valid = ReturnExercises(**json)
+    assert type(valid.data) == list
+    assert valid.total < 10
+
+def test_get_exercises_ok_page_limit():
+    limit = 10
+    response1 = client.get(f"/api/exercises?limit={limit}&page=1")
+    response2 = client.get(f"/api/exercises?limit={limit}&page=2")
+    json1 = response1.json()
+    valid1 = ReturnExercises(**json1)
+    json2 = response2.json()
+    valid2 = ReturnExercises(**json2)
+    assert len(valid1.data) == limit
+    assert valid1.data[0] != valid2.data[0]
 
 def test_get_exercise_ok():
     exercise_id = '52907d76-ab43-49a5-9f3f-4815f9f8fa78'
