@@ -4,7 +4,6 @@ CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT NOT NULL UNIQUE,
     hashed_password BYTEA NOT NULL,
-    password_salt BYTEA NOT NULL,
     role ROLE NOT NULL DEFAULT 'user'
 );
 

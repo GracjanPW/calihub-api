@@ -1,19 +1,18 @@
+import os
 from psycopg_pool import AsyncConnectionPool
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 
 DATABASE_CONFIG = {
-    "user": "app_user",
-    "password": "devpassword",
-    "host": "localhost",
-    "port": 5432,  # Default is 5432
-    "database": "calihub_dev_db",
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "host": os.getenv("DB_HOST"),
+    "port": os.getenv("DB_PORT"), 
+    "database": os.getenv("DB_NAME"),
 }
 
-
-DATABASE_URL = "postgresql://user:password@localhost:5432/mydatabase"
-
+print(DATABASE_CONFIG)
 # Create a global connection pool (but do not open it yet)
 pool = AsyncConnectionPool(
     f"postgres://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}",min_size=1, max_size=10, open=False)

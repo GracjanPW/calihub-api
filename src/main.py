@@ -1,20 +1,10 @@
-from contextlib import asynccontextmanager
-from typing import *
-
-from fastapi import FastAPI
-import psycopg_pool
-
-from src.db import lifespan
-from .api_routers.exercises.main import router as exercises_router
 from .api_routers.auth.main import router as auth_router
-
-DATABASE_CONFIG = {
-    "user": "app_user",
-    "password": "devpassword",
-    "host": "localhost",
-    "port": 5432,  # Default is 5432
-    "database": "calihub_dev_db",
-}
+from .api_routers.exercises.main import router as exercises_router
+from src.db import lifespan
+from fastapi import FastAPI
+from typing import *
+from dotenv import load_dotenv
+load_dotenv()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -22,6 +12,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(exercises_router, prefix="/api")
 app.include_router(auth_router, prefix="/api/auth")
+
 
 @app.get("/")
 def read_root():
