@@ -6,6 +6,7 @@ import psycopg_pool
 
 from src.db import lifespan
 from .api_routers.exercises.main import router as exercises_router
+from .api_routers.auth.main import router as auth_router
 
 DATABASE_CONFIG = {
     "user": "app_user",
@@ -20,7 +21,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 app.include_router(exercises_router, prefix="/api")
-
+app.include_router(auth_router, prefix="/api/auth")
 
 @app.get("/")
 def read_root():
