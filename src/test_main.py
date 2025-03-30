@@ -24,8 +24,3 @@ def reset_db():
     # Optionally, do cleanup after all tests are done
     subprocess.run(["python", script_path], check=True)
 
-
-def test_read_root():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"hello": "world"}

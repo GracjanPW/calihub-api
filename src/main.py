@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(docs_url="/fastapi_docs",lifespan=lifespan)
 
 
 app.include_router(exercises_router, prefix="/api")
