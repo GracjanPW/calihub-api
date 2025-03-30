@@ -8,8 +8,6 @@ import jwt
 from passlib.hash import bcrypt
 from fastapi import status
 
-from src.db import get_db
-
 TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRE_MINUTES"))
 SECRET_KEY = os.getenv("SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")

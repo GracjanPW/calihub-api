@@ -37,4 +37,3 @@ class ReturnExercise(BaseModel):
 class ReturnExerciseId(BaseModel):
     id: Optional[UUID] = None
     message: Optional[str] = None
-

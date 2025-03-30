@@ -1,6 +1,8 @@
-from .api_routers.auth.main import router as auth_router
-from .api_routers.exercises.main import router as exercises_router
-from src.db import lifespan
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from .backend.api_routers.auth.main import router as auth_router
+from .backend.api_routers.exercises.main import router as exercises_router
+from src.backend.db import lifespan
 from fastapi import FastAPI
 from typing import *
 from dotenv import load_dotenv
@@ -12,6 +14,10 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(exercises_router, prefix="/api")
 app.include_router(auth_router, prefix="/api/auth")
+
+
+STATIC_PATH = Path(__file__).parent.resolve() / "frontend" / "dist"
+app.mount("/", StaticFiles(directory=STATIC_PATH, html=True), name="frontend")
 
 
 @app.get("/")

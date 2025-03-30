@@ -1,8 +1,6 @@
-
 import base64
-
 import pytest
-from src.auth_lib.main import generate_salt, generate_token, hash_password, verify_password
+from src.backend.auth_lib.main import generate_salt, generate_token, hash_password, verify_password
 
 
 def test_gen_salt():

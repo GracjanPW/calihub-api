@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 import psycopg
-from src.auth_lib.main import generate_salt, generate_token, get_current_user, hash_password, verify_password
-from src.db import get_db
+from src.backend.auth_lib.main import generate_salt, generate_token, get_current_user, hash_password, verify_password
+from src.backend.db import get_db
 from pydantic import BaseModel
 
 

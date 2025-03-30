@@ -3,11 +3,11 @@ import psycopg
 
 
 async def get_exercises(
-    conn, 
-    name:Optional[str] = None, 
-    category: Optional[str] = None,     
-    difficulty: Optional[str] = None, 
-    page: int = 1, 
+    conn,
+    name: Optional[str] = None,
+    category: Optional[str] = None,
+    difficulty: Optional[str] = None,
+    page: int = 1,
     limit: int = 10
 ):
     query = "SELECT * FROM exercises WHERE 1 = 1"
@@ -27,11 +27,11 @@ async def get_exercises(
 
     async with conn.transaction():
         async with conn.cursor(row_factory=psycopg.rows.dict_row) as cursor:
-            await cursor.execute(query+filters+limit_filter, (*params,))    
+            await cursor.execute(query+filters+limit_filter, (*params,))
             exercises = await cursor.fetchall()
             await cursor.execute("SELECT COUNT(*) FROM exercises WHERE 1=1"+filters, (*params[:-2],))
             total = (await cursor.fetchone())['count']
-    
+
     return exercises, total
 
 
@@ -68,5 +68,4 @@ async def delete_exercise(conn, exercise_id):
         await cursor.execute("DELETE FROM exercises WHERE id = %s", (exercise_id,))
     if cursor.rowcount:
         return cursor.rowcount
-    return None 
-    
+    return None
