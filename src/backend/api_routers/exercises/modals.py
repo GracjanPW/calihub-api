@@ -1,25 +1,44 @@
+from enum import Enum
 from typing import Optional
-from uuid import UUID
 from pydantic import BaseModel
 
+class Difficulty(Enum):
+    BEGINNER = "beginner"
+    NOVICE = "novice"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+    EXPERT = "expert"
+
+class ExerciseMuscleGroupReturn(BaseModel):
+    id: int
+    name: str
+
+class ExerciseEquipmentReturn(BaseModel):
+    id: int
+    name: str
 
 class CreateExercise(BaseModel):
     name: str
-    description: Optional[str] = None
-    muscle_group: str
-    equipment: Optional[list[str]] = None
-    difficulty: int
+    description: str
+    muscle_groups: Optional[list[int]] = None
+    equipment: Optional[list[int]] = None
+    difficulty: Difficulty
 
 
 class UpdateExercise(BaseModel):
     description: Optional[str] = None
-    equipment: Optional[list[str]] = None
-    difficulty: Optional[int] = None
-    muscle_group: Optional[str] = None
+    equipment: Optional[list[int]] = None
+    muscle_groups: Optional[list[int]] = None
+    difficulty: Optional[Difficulty] = None
 
 
-class Exercise(CreateExercise):
-    id: UUID
+class Exercise(BaseModel):
+    id: int
+    name: str
+    description: str
+    muscle_groups: Optional[list[ExerciseMuscleGroupReturn]] = []
+    equipment: Optional[list[ExerciseEquipmentReturn]] = []
+    difficulty: Difficulty
 
 
 class ReturnExercises(BaseModel):
@@ -35,5 +54,5 @@ class ReturnExercise(BaseModel):
 
 
 class ReturnExerciseId(BaseModel):
-    id: Optional[UUID] = None
+    id: Optional[int] = None
     message: Optional[str] = None

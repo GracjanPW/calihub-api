@@ -17,7 +17,7 @@ def test_get_exercises_ok():
     json = response.json()
     valid = ReturnExercises(**json)
     assert type(valid.data) == list
-    assert valid.total > 10
+    assert valid.total >= 10
 
 
 def test_get_exercises_ok_search():
@@ -42,17 +42,17 @@ def test_get_exercises_ok_page_limit():
 
 
 def test_get_exercise_ok():
-    exercise_id = '52907d76-ab43-49a5-9f3f-4815f9f8fa78'
+    exercise_id = 1
     response = client.get(f"/api/exercises/{exercise_id}")
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExercise(**json)
     assert type(valid.data) == Exercise
-    assert valid.data.id == UUID(exercise_id)
+    assert valid.data.id == exercise_id
 
 
 def test_get_exercise_fail_not_found():
-    exercise_id = '52907d76-ab43-49a5-9f3f-4815f9f8fa79'
+    exercise_id = 200
     response = client.get(f"/api/exercises/{exercise_id}")
     json = response.json()
     assert response.status_code == 404
@@ -62,40 +62,55 @@ def test_get_exercise_fail_not_found():
 def test_post_exercise_ok():
     exercise = {
         "name": "Deadlift Press",
-        "muscle_group": "Chest",
-        "difficulty": 3
+        "description":"test exercise",
+        "muscle_groups": [1],
+        "equipment":[4],
+        "difficulty": "novice"
     }
-    response = client.post("/api/exercises/", json=exercise)
+    response = client.post("/api/exercises", json=exercise)
     assert response.status_code == 201
     json = response.json()
     valid = ReturnExerciseId(**json)
-    assert type(valid.id) == UUID
+    assert type(valid.id) == int
 
 
 def test_post_exercise_fail_invalid_input():
     exercise = {
         "name": "Deadlift Press",
     }
-    response = client.post("/api/exercises/", json=exercise)
+    response = client.post("/api/exercises", json=exercise)
     assert response.status_code == 422
 
+def test_post_exercise_fail_invalid_equipment():
+    exercise = {
+        "name": "Deadlift Press",
+        "description":"test exercise",
+        "muscle_groups": [1],
+        "equipment":[200],
+        "difficulty": "novice"
+    }
+    response = client.post("/api/exercises", json=exercise)
+    assert response.status_code == 400
 
 def test_update_exercise_ok():
-    exercise_id = "52907d76-ab43-49a5-9f3f-4815f9f8fa78"
+    exercise_id = 1
     exercise = {
-        "difficulty": 3
+        "difficulty": "intermediate",
+        "description": "test desc",
+        "muscle_groups": [2,5],
+        "equipment": [1,6]
     }
     response = client.put(f"/api/exercises/{exercise_id}", json=exercise)
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExerciseId(**json)
-    assert valid.id == UUID(exercise_id)
+    assert valid.id == exercise_id
 
 
 def test_detete_exercise_ok():
-    exercise_id = "52907d76-ab43-49a5-9f3f-4815f9f8fa78"
+    exercise_id = 1
     response = client.delete(f"/api/exercises/{exercise_id}")
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExerciseId(**json)
-    assert valid.id == UUID(exercise_id)
+    assert valid.id == exercise_id

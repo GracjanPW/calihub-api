@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Exercises.css';
 
+interface muscle_group {
+  id:number;
+  name: string;
+}
+
+interface equipment {
+  id:number;
+  name: string;
+}
+
 interface Exercise {
   id: string;  // UUID
   name: string;
   description: string;
-  difficulty: number;
-  muscle_group: string;  // Changed from muscleGroups to muscle_group
-  equipment: string[];
+  difficulty: string;
+  muscle_groups: muscle_group[];  // Changed from muscleGroups to muscle_group
+  equipment: equipment[];
 }
 
 interface ApiResponse {
@@ -216,9 +226,11 @@ const Exercises: React.FC = () => {
             onChange={(e) => setDifficultyFilter(e.target.value)}
           >
             <option value="">All Difficulties</option>
-            <option value="1">Beginner</option>
-            <option value="2">Intermediate</option>
-            <option value="3">Advanced</option>
+            <option value="beginner">Beginner</option>
+            <option value="noivce">Novice</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+            <option value="elite">Elite</option>
           </select>
 
           <select
@@ -244,18 +256,23 @@ const Exercises: React.FC = () => {
       <div className="exercises-grid">
         {exercises.map(exercise => (
           <div key={exercise.id} className="exercise-card">
-            <span className={`difficulty-badge ${getDifficultyClass(exercise.difficulty)}`}>
-              {getDifficultyLabel(exercise.difficulty)}
+            <span className={`difficulty-badge ${exercise.difficulty}`}>
+              {exercise.difficulty.toUpperCase()}
             </span>
             <h3>{exercise.name}</h3>
             <p>{exercise.description}</p>
             <div className="exercise-tags">
-              <div className="muscle-groups">
+              {/* <div className="muscle-groups">
                 <span className="tag">{exercise.muscle_group}</span>
+              </div> */}
+              <div className="muscle-groups">
+                {exercise.muscle_groups.map(item => (
+                  <span key={item.id} className="tag">{item.name}</span>
+                ))}
               </div>
               <div className="equipment">
                 {exercise.equipment.map(item => (
-                  <span key={item} className="tag equipment">{item}</span>
+                  <span key={item.id} className="tag equipment">{item.name}</span>
                 ))}
               </div>
             </div>
@@ -277,23 +294,5 @@ const Exercises: React.FC = () => {
   );
 };
 
-// Helper functions to convert difficulty numbers to labels and CSS classes
-const getDifficultyLabel = (difficulty: number): string => {
-  switch (difficulty) {
-    case 1: return 'Beginner';
-    case 2: return 'Intermediate';
-    case 3: return 'Advanced';
-    default: return 'Unknown';
-  }
-};
-
-const getDifficultyClass = (difficulty: number): string => {
-  switch (difficulty) {
-    case 1: return 'beginner';
-    case 2: return 'intermediate';
-    case 3: return 'advanced';
-    default: return 'beginner';
-  }
-};
 
 export default Exercises; 
