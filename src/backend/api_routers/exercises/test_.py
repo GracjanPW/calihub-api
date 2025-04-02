@@ -1,11 +1,5 @@
-import os
-import subprocess
-from uuid import UUID
 from fastapi import testclient
-import pytest
-
 from src.backend.api_routers.exercises.modals import Exercise, ReturnExercise, ReturnExerciseId, ReturnExercises
-
 from src.main import app
 
 client = testclient.TestClient(app)

@@ -7,60 +7,132 @@ from src.backend.db import get_db
 
 router = APIRouter()
 
+# ------------------------------------------------------------------------------------------------------------------------------------
 
 @router.get("/exercises", status_code=status.HTTP_200_OK)
 async def get_exercises(
-    name: Optional[str] = Query(
-        None, alias="search", description="Search exercises by name"),
-    muscle_group: Optional[str] = Query(None, description="Filter by category"),
-    equipment: Optional[str] = Query(None, description="Filter by category"),
-    difficulty: Optional[str] = Query(
-        None, description="Filter by difficulty level"),
-    page: int = Query(1, ge=1, description="Page number (1-based index)"),
-    limit: int = Query(
-        10, le=100, description="Number of items per page (max 100)"),
-    conn=Depends(get_db)
+    name:           Optional[str] = Query(None, alias="search", description="Search exercises by name"),
+    muscle_group:   Optional[str] = Query(None, description="Filter by category"),
+    equipment:      Optional[str] = Query(None, description="Filter by category"),
+    difficulty:     Optional[str] = Query(None, description="Filter by difficulty level"),
+    page:           int           = Query(1, ge=1, description="Page number (1-based index)"),
+    limit:          int           = Query(10, le=100, description="Number of items per page (max 100)"),
+    conn                          = Depends(get_db)
 ) -> ReturnExercises:
     # Get exercises from controller with search, filters, and pagination
     res, total = await ExerciseController.get_exercises(
-        conn, name=name, muscle_group=muscle_group, equipment=equipment, difficulty=difficulty, page=page, limit=limit
+        conn         = conn, 
+        name         = name, 
+        muscle_group = muscle_group, 
+        equipment    = equipment, 
+        difficulty   = difficulty, 
+        page         = page, 
+        limit        = limit
     )
 
     # Return exercises data, total count, current page, and limit
-    return ReturnExercises(data=res, total=total, page=page, limit=limit)
+    return ReturnExercises(
+        data  = res, 
+        total = total, 
+        page  = page, 
+        limit = limit
+    )
 
+# ------------------------------------------------------------------------------------------------------------------------------------
 
 @router.get("/exercises/{exercise_id}", status_code=status.HTTP_200_OK)
-async def get_exercise(exercise_id: int, response: Response, conn=Depends(get_db)) -> ReturnExercise:
-    res = await ExerciseController.get_exercise(conn, exercise_id)
+async def get_exercise(
+    exercise_id:  int, 
+    response:     Response, 
+    conn =        Depends(get_db)
+) -> ReturnExercise:
+    # Find and return exercise with given id
+    res = await ExerciseController.get_exercise(
+        conn        = conn, 
+        exercise_id = exercise_id
+    )
     if res:
-        return ReturnExercise(data=res)
+        return ReturnExercise(
+            data = res
+        )
+    
     response.status_code = 404
-    return ReturnExercise(message="Exercise not found")
 
+    return ReturnExercise(
+        message = "Exercise not found"
+    )
+
+# ------------------------------------------------------------------------------------------------------------------------------------
 
 @router.post("/exercises", status_code=status.HTTP_201_CREATED)
-async def create_exercise(exercise: CreateExercise, conn=Depends(get_db)) -> ReturnExerciseId:
-    print(exercise)
-    res = await ExerciseController.create_exercise(conn, exercise)
+async def create_exercise(
+    exercise:  CreateExercise,
+    response:  Response, 
+    conn =     Depends(get_db)
+) -> ReturnExerciseId:
+    # Create exercise
+    res = await ExerciseController.create_exercise(
+        conn     = conn, 
+        exercise = exercise
+    )
+    
     if res:
         return ReturnExerciseId(id=res)
-    return ReturnExerciseId(message="Failed to create exercise")
+    
+    response.status_code = 400
 
+    return ReturnExerciseId(
+        message = "Failed to create exercise"
+    )
+
+# ------------------------------------------------------------------------------------------------------------------------------------
 
 @router.put("/exercises/{exercise_id}")
-async def update_exercise(exercise_id: int, exercise: UpdateExercise, response: Response, conn=Depends(get_db)) -> ReturnExerciseId:
-    res = await ExerciseController.update_exercise(conn, exercise_id, exercise)
-    if res:
-        return ReturnExerciseId(id=res)
-    response.status_code = 404
-    return ReturnExerciseId(message="Exercise not found")
+async def update_exercise(
+    exercise_id:        int, 
+    exercise_changes:   UpdateExercise, 
+    response:           Response, 
+    conn =              Depends(get_db)
+) -> ReturnExerciseId:
+    res = await ExerciseController.update_exercise(
+        conn        = conn, 
+        exercise_id = exercise_id, 
+        exercise    = exercise_changes
+    )
 
+    if res:
+        return ReturnExerciseId(
+            id = res
+        )
+    
+    response.status_code = 404
+    
+    return ReturnExerciseId(
+        message = "Exercise not found"
+    )
+
+# ------------------------------------------------------------------------------------------------------------------------------------
 
 @router.delete("/exercises/{exercise_id}", status_code=status.HTTP_200_OK)
-async def delete_exercise(exercise_id: int, response: Response, conn=Depends(get_db)) -> ReturnExerciseId:
-    rowcount = await ExerciseController.delete_exercise(conn, exercise_id)
+async def delete_exercise(
+    exercise_id:    int, 
+    response:       Response, 
+    conn=           Depends(get_db)
+) -> ReturnExerciseId:
+    
+    rowcount = await ExerciseController.delete_exercise(
+        conn        = conn, 
+        exercise_id = exercise_id
+    )
     if rowcount:
-        return ReturnExerciseId(id=exercise_id)
+        return ReturnExerciseId(
+            id = exercise_id
+        )
+    
     response.status_code = 404
-    return ReturnExerciseId(message="Exercise not found")
+    
+    return ReturnExerciseId(
+        message = "Exercise not found"
+    )
+
+# ------------------------------------------------------------------------------------------------------------------------------------

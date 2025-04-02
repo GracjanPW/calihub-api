@@ -359,11 +359,17 @@ async def seed():
                 "INSERT INTO muscle_groups (id, name) VALUES (%s, %s) ON CONFLICT (id) DO NOTHING",
                 [(item['id'], item['name']) for item in SEED_DATA_MUSCLE_GROUPS]
             )
+            await cursor.execute(
+                "SELECT setval('muscle_groups_id_seq', (SELECT MAX(id) FROM muscle_groups) + 1)"
+            )
 
             # Insert equipment
             await cursor.executemany(
                 "INSERT INTO equipment (id, name) VALUES (%s, %s) ON CONFLICT (id) DO NOTHING",
                 [(item['id'], item['name']) for item in SEED_DATA_EQUIPMENT]
+            )
+            await cursor.execute(
+                "SELECT setval('equipment_id_seq', (SELECT MAX(id) FROM equipment) + 1)"
             )
 
             # Insert exercises
