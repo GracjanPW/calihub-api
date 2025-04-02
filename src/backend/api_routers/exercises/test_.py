@@ -57,7 +57,7 @@ def test_post_exercise_ok():
     exercise = {
         "name": "Deadlift Press",
         "description":"test exercise",
-        "muscle_groups": [1],
+        "muscle_groups": [2],
         "equipment":[4],
         "difficulty": "novice"
     }
@@ -79,7 +79,7 @@ def test_post_exercise_fail_invalid_equipment():
     exercise = {
         "name": "Deadlift Press",
         "description":"test exercise",
-        "muscle_groups": [1],
+        "muscle_groups": [2],
         "equipment":[200],
         "difficulty": "novice"
     }
@@ -92,7 +92,7 @@ def test_update_exercise_ok():
         "difficulty": "intermediate",
         "description": "test desc",
         "muscle_groups": [2,5],
-        "equipment": [1,6]
+        "equipment": [2,6]
     }
     response = client.put(f"/api/exercises/{exercise_id}", json=exercise)
     assert response.status_code == 200
