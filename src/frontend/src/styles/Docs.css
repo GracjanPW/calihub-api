@@ -1,31 +1,52 @@
 .docs-page {
   display: flex;
-  min-height: calc(100vh - 64px); /* Subtract navbar height */
+  min-height: calc(100vh - 56px);
   background-color: #1a1a1a;
   color: #f8fafc;
-  margin-top: 64px; /* Add margin for navbar */
+  margin-top: 56px;
+  padding-top: 2rem;
 }
 
 .docs-sidebar {
-  width: 300px;
+  width: 360px;
   padding: 2rem;
   background-color: #0a0a0a;
   border-right: 1px solid rgba(220, 38, 38, 0.2);
+  height: calc(100vh - 74px); /* navbar height (56px) + padding-top (18px) */
   position: fixed;
-  height: calc(100vh - 64px);
   overflow-y: auto;
+  top: 74px; /* navbar height (56px) + padding-top (18px) */
 }
 
 .docs-sidebar h2 {
   color: #dc2626;
   font-size: 1.25rem;
   margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(220, 38, 38, 0.2);
+  font-weight: 600;
+  letter-spacing: 0.025em;
 }
 
 .docs-sidebar nav {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+}
+
+.route-section {
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
+}
+
+.route-section h3 {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
 }
 
 .route-link {
@@ -65,16 +86,16 @@
 
 .route-link .path {
   font-family: 'Fira Code', monospace;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .docs-content {
   flex: 1;
   padding: 3rem;
-  margin-left: 300px; /* Match sidebar width */
+  margin-left: 360px;
   max-width: 800px;
 }
 

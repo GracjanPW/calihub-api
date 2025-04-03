@@ -59,7 +59,7 @@ async def get_equipment_by_id(
         row_factory = psycopg.rows.dict_row
     ) as cursor:
         await cursor.execute(
-            "SELECT id, name FROM equipment WHERE id = %s", 
+            "SELECT id, name, description FROM equipment WHERE id = %s", 
             (
                 id, 
             )
@@ -79,7 +79,7 @@ async def create_equipment(
         row_factory = psycopg.rows.dict_row
     ) as cursor:
         await cursor.execute(
-            "INSERT INTO equipment (name) VALUES (%s) RETURNING id",
+            "INSERT INTO equipment (name, description) VALUES (%s, %s) RETURNING id",
             (
                 *data,
             )
@@ -101,7 +101,7 @@ async def update_equipment(
             row_factory=psycopg.rows.dict_row
         ) as cursor:
             await cursor.execute(
-                "UPDATE equipment SET name = COALESCE(%s, name) WHERE id = %s RETURNING id",
+                "UPDATE equipment SET name = COALESCE(%s, name), description = COALESCE(%s, description) WHERE id = %s RETURNING id",
                 (
                     *data,
                     id

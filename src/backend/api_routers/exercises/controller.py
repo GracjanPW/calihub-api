@@ -15,38 +15,49 @@ async def get_exercises(
     page: int = 1,
     limit: int = 10
 ):
-    query = "\
-SELECT \
-e.id, \
-e.name, \
-e.description, \
-e.difficulty, \
-COALESCE(\
-    array_agg(\
-            DISTINCT jsonb_build_object('id', mg.id, 'name', mg.name) \
-            ) FILTER (WHERE mg.id IS NOT NULL AND mg.name IS NOT NULL), \
-            '{}' \
-            ) AS muscle_groups, \
-COALESCE(array_agg(\
-            DISTINCT jsonb_build_object('id', q.id, 'name', q.name) \
-            ) FILTER (WHERE q.id IS NOT NULL AND q.name IS NOT NULL), \
-            '{}' \
-            ) AS equipment \
-FROM exercises e \
-LEFT JOIN exercise_muscle_groups emg ON e.id = emg.exercise_id \
-LEFT JOIN muscle_groups mg ON mg.id = emg.muscle_group_id \
-LEFT JOIN exercise_equipment eq ON e.id = eq.exercise_id \
-LEFT JOIN equipment q ON q.id = eq.equipment_id \
-WHERE 1 = 1"
-    count_query = "\
-SELECT e.id as count FROM exercises e \
-LEFT JOIN exercise_muscle_groups emg ON e.id = emg.exercise_id \
-LEFT JOIN muscle_groups mg ON mg.id = emg.muscle_group_id \
-LEFT JOIN exercise_equipment eq ON e.id = eq.exercise_id \
-LEFT JOIN equipment q ON q.id = eq.equipment_id \
-WHERE 1=1"
+    query = """
+    SELECT 
+        e.id,
+        e.name,
+        e.description,
+        e.difficulty,
+        COALESCE(
+            array_agg(
+                DISTINCT jsonb_build_object(
+                    'id', mg.id,
+                    'name', mg.name
+                )
+            ) FILTER (WHERE mg.id IS NOT NULL AND mg.name IS NOT NULL),
+            '{}'
+        ) AS muscle_groups,
+        COALESCE(
+            array_agg(
+                DISTINCT jsonb_build_object(
+                    'id', q.id,
+                    'name', q.name
+                )
+            ) FILTER (WHERE q.id IS NOT NULL AND q.name IS NOT NULL),
+            '{}'
+        ) AS equipment
+    FROM exercises e
+    LEFT JOIN exercise_muscle_groups emg ON e.id = emg.exercise_id
+    LEFT JOIN muscle_groups mg ON mg.id = emg.muscle_group_id
+    LEFT JOIN exercise_equipment eq ON e.id = eq.exercise_id
+    LEFT JOIN equipment q ON q.id = eq.equipment_id
+    WHERE 1 = 1"""
+
+    count_query = """
+    SELECT COUNT(DISTINCT e.id) as total
+    FROM exercises e
+    LEFT JOIN exercise_muscle_groups emg ON e.id = emg.exercise_id
+    LEFT JOIN muscle_groups mg ON mg.id = emg.muscle_group_id
+    LEFT JOIN exercise_equipment eq ON e.id = eq.exercise_id
+    LEFT JOIN equipment q ON q.id = eq.equipment_id
+    WHERE 1 = 1"""
+
     filters = ""
     params = []
+    
     if name:
         filters += " AND e.name ILIKE %s"
         params.append(f"%{name}%")
@@ -59,6 +70,7 @@ WHERE 1=1"
     if difficulty:
         filters += " AND e.difficulty = %s"
         params.append(difficulty)
+        
     group_by = " GROUP BY e.id, e.name, e.description, e.difficulty"
     limit_filter = " ORDER BY e.name LIMIT %s OFFSET %s"
     params.extend([limit, (page - 1) * limit])
@@ -66,16 +78,12 @@ WHERE 1=1"
     total = 0
     async with conn.transaction():
         async with conn.cursor(row_factory=psycopg.rows.dict_row) as cursor:
-
             await cursor.execute(query+filters+group_by+limit_filter, (*params,))
             exercises = await cursor.fetchall()
-            print(exercises)
-            await cursor.execute(count_query+filters+group_by, (*params[:-2],))
-            result = cursor.rowcount
-            print(result)
-            # Check if result is None
-            if result is not None:
-                total = result
+            
+            await cursor.execute(count_query+filters, (*params[:-2],))
+            count_result = await cursor.fetchone()
+            total = count_result['total'] if count_result else 0
 
     return exercises, total
 
@@ -118,9 +126,16 @@ async def create_exercise(conn, exercise):
                     await cursor.execute("INSERT INTO exercise_muscle_groups (exercise_id, muscle_group_id) VALUES (%s,%s)", (id, i))
 
         return id
-    except ForeignKeyViolation as _e:
+    except ForeignKeyViolation as e:
         raise HTTPException(
-            status_code=400, detail="Invalid data, muscle_group or equipment doesn't exist")
+            status_code=400,
+            detail="Invalid data, muscle_group or equipment doesn't exist"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error"
+        )
 
 
 async def update_exercise(conn, exercise_id:int, exercise):

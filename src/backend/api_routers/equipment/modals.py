@@ -3,16 +3,18 @@ from pydantic import BaseModel
 
 
 class Equipment(BaseModel):
-    id:   int
-    name: str
+    id:          int
+    name:        str
+    description: Optional[str] = None
 
 
 class CreateEquipment(BaseModel):
-    name: str
-
+    name:        str
+    description: Optional[str] = None
 
 class UpdateEquipment(BaseModel):
-    name: str
+    name:        str
+    description: Optional[str] = None
 
 
 class ReturnEquipmentAll(BaseModel):

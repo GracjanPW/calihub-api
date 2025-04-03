@@ -1,7 +1,7 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from src.backend.api_routers.exercises import controller as ExerciseController
-
+from psycopg.errors import ForeignKeyViolation
 from src.backend.api_routers.exercises.modals import CreateExercise, ReturnExercise, ReturnExerciseId, ReturnExercises, UpdateExercise
 from src.backend.db import get_db
 
@@ -19,24 +19,31 @@ async def get_exercises(
     limit:          int           = Query(10, le=100, description="Number of items per page (max 100)"),
     conn                          = Depends(get_db)
 ) -> ReturnExercises:
-    # Get exercises from controller with search, filters, and pagination
-    res, total = await ExerciseController.get_exercises(
-        conn         = conn, 
-        name         = name, 
-        muscle_group = muscle_group, 
-        equipment    = equipment, 
-        difficulty   = difficulty, 
-        page         = page, 
-        limit        = limit
-    )
+    try:
+        # Get exercises from controller with search, filters, and pagination
+        res, total = await ExerciseController.get_exercises(
+            conn         = conn, 
+            name         = name, 
+            muscle_group = muscle_group, 
+            equipment    = equipment, 
+            difficulty   = difficulty, 
+            page         = page, 
+            limit        = limit
+        )
 
-    # Return exercises data, total count, current page, and limit
-    return ReturnExercises(
-        data  = res, 
-        total = total, 
-        page  = page, 
-        limit = limit
-    )
+        # Return exercises data, total count, current page, and limit
+        return ReturnExercises(
+            data  = res, 
+            total = total, 
+            page  = page, 
+            limit = limit
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code = 500,
+            detail      = "Trouble getting exercises, try again later"
+        )
 
 # ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -46,21 +53,29 @@ async def get_exercise(
     response:     Response, 
     conn =        Depends(get_db)
 ) -> ReturnExercise:
-    # Find and return exercise with given id
-    res = await ExerciseController.get_exercise(
-        conn        = conn, 
-        exercise_id = exercise_id
-    )
-    if res:
+    try:
+        # Find and return exercise with given id
+        res = await ExerciseController.get_exercise(
+            conn        = conn, 
+            exercise_id = exercise_id
+        )
+        if res:
+            return ReturnExercise(
+                data = res
+            )
+        
+        response.status_code = 404
+
         return ReturnExercise(
-            data = res
+            message = "Exercise not found"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code = 500,
+            detail      = "Trouble getting exercise, try again later"
         )
     
-    response.status_code = 404
-
-    return ReturnExercise(
-        message = "Exercise not found"
-    )
 
 # ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,20 +85,25 @@ async def create_exercise(
     response:  Response, 
     conn =     Depends(get_db)
 ) -> ReturnExerciseId:
-    # Create exercise
-    res = await ExerciseController.create_exercise(
-        conn     = conn, 
-        exercise = exercise
-    )
+    try:
+        # Create exercise
+        res = await ExerciseController.create_exercise(
+            conn     = conn, 
+            exercise = exercise
+        )
     
-    if res:
-        return ReturnExerciseId(id=res)
-    
-    response.status_code = 400
-
-    return ReturnExerciseId(
-        message = "Failed to create exercise"
-    )
+        if res:
+            return ReturnExerciseId(
+                id  = res
+            )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code = 500,
+            detail      = "Trouble creating exercise, try again later"
+        )
 
 # ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,22 +114,29 @@ async def update_exercise(
     response:           Response, 
     conn =              Depends(get_db)
 ) -> ReturnExerciseId:
-    res = await ExerciseController.update_exercise(
-        conn        = conn, 
-        exercise_id = exercise_id, 
-        exercise    = exercise_changes
-    )
-
-    if res:
-        return ReturnExerciseId(
-            id = res
+    try:
+        res = await ExerciseController.update_exercise(
+            conn        = conn, 
+            exercise_id = exercise_id, 
+            exercise    = exercise_changes
         )
+
+        if res:
+            return ReturnExerciseId(
+                id = res
+            )
     
-    response.status_code = 404
+        response.status_code = 404
     
-    return ReturnExerciseId(
-        message = "Exercise not found"
-    )
+        return ReturnExerciseId(
+            message = "Exercise not found"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code = 500,
+            detail      = "Trouble updating exercise, try again later"
+        )
 
 # ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -119,20 +146,26 @@ async def delete_exercise(
     response:       Response, 
     conn=           Depends(get_db)
 ) -> ReturnExerciseId:
-    
-    rowcount = await ExerciseController.delete_exercise(
-        conn        = conn, 
-        exercise_id = exercise_id
-    )
-    if rowcount:
-        return ReturnExerciseId(
-            id = exercise_id
+    try:
+        rowcount = await ExerciseController.delete_exercise(
+            conn        = conn, 
+            exercise_id = exercise_id
         )
+        if rowcount:
+            return ReturnExerciseId(
+                id = exercise_id
+            )
     
-    response.status_code = 404
+        response.status_code = 404
     
-    return ReturnExerciseId(
-        message = "Exercise not found"
-    )
+        return ReturnExerciseId(
+            message = "Exercise not found"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code = 500,
+            detail      = "Trouble deleting exercise, try again later"
+        )
 
 # ------------------------------------------------------------------------------------------------------------------------------------
