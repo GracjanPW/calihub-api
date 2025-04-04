@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status, Query
 
 from src.backend.api_routers.equipment import controllers as EquipmentController 
 from src.backend.api_routers.equipment.modals import CreateEquipment, ReturnEquipmentId, ReturnEquipmentAll, ReturnEquipment, UpdateEquipment
+from src.backend.auth_lib.main import is_admin
 from src.backend.db import get_db
 
 
@@ -71,8 +72,9 @@ async def get_equipment_by_id(
 async def create_equipment(
     response:        Response,
     new_equipment:   CreateEquipment,
-    conn =           Depends(get_db)
-):
+    conn =           Depends(get_db),
+    _admin_user =    Depends(is_admin)
+):  
     try:
         res = await EquipmentController.create_equipment(
             conn = conn,
@@ -97,7 +99,8 @@ async def update_equipment(
     response:          Response,
     equipment_id:      int,
     equipment_update:  UpdateEquipment,
-    conn =             Depends(get_db)
+    conn =             Depends(get_db),
+    _admin_user =      Depends(is_admin)
 ):
     try:
         res = await EquipmentController.update_equipment(
@@ -123,7 +126,8 @@ async def update_equipment(
 async def delete_equipment(
     response:       Response,
     equipment_id:   int,
-    conn =          Depends(get_db)
+    conn =          Depends(get_db),
+    _admin_user =   Depends(is_admin)
 ):
     try:
         res = await EquipmentController.delete_equipment(

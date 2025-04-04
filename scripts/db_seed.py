@@ -1,6 +1,8 @@
 import asyncio
 import os
+from passlib.hash import bcrypt
 import psycopg
+
 
 DATABASE_CONFIG = {
     "user": os.getenv("DB_USER"),
@@ -353,7 +355,14 @@ async def seed():
     await conn.set_autocommit(True)
     async with conn.transaction():
         async with conn.cursor() as cursor: # ✅ Fix: Use `await conn.cursor()`
-        
+            # Insert admin user
+            admin_password = "adminpassword"
+            admin_hashed_password = bcrypt.hash(admin_password.encode())
+            await cursor.execute(
+                "INSERT INTO users (email, hashed_password, role) VALUES (%s, %s, %s) ON CONFLICT (email) DO NOTHING",
+                ("admin@gmail.com", admin_hashed_password, "admin")
+            )
+
             # Insert muscle groups
             await cursor.executemany(
                 "INSERT INTO muscle_groups (id, name) VALUES (%s, %s) ON CONFLICT (id) DO NOTHING",
@@ -392,6 +401,7 @@ async def seed():
                     "INSERT INTO exercise_equipment (exercise_id, equipment_id) VALUES (%s, %s)",
                     [(exercise_id, eq_id) for eq_id in exercise['equipment']]
                 )
+            
 
     await conn.close()  # ✅ Always close the connection
     

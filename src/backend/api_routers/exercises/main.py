@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from src.backend.api_routers.exercises import controller as ExerciseController
 from psycopg.errors import ForeignKeyViolation
 from src.backend.api_routers.exercises.modals import CreateExercise, ReturnExercise, ReturnExerciseId, ReturnExercises, UpdateExercise
+from src.backend.auth_lib.main import is_admin
 from src.backend.db import get_db
 
 router = APIRouter()
@@ -81,9 +82,10 @@ async def get_exercise(
 
 @router.post("/exercises", status_code=status.HTTP_201_CREATED)
 async def create_exercise(
-    exercise:  CreateExercise,
-    response:  Response, 
-    conn =     Depends(get_db)
+    exercise:     CreateExercise,
+    response:     Response, 
+    conn =        Depends(get_db),
+    _admin_user = Depends(is_admin) 
 ) -> ReturnExerciseId:
     try:
         # Create exercise
@@ -112,7 +114,8 @@ async def update_exercise(
     exercise_id:        int, 
     exercise_changes:   UpdateExercise, 
     response:           Response, 
-    conn =              Depends(get_db)
+    conn =              Depends(get_db),
+    _admin_user =          Depends(is_admin)  
 ) -> ReturnExerciseId:
     try:
         res = await ExerciseController.update_exercise(
@@ -144,7 +147,8 @@ async def update_exercise(
 async def delete_exercise(
     exercise_id:    int, 
     response:       Response, 
-    conn=           Depends(get_db)
+    conn=           Depends(get_db),
+    _admin_user =   Depends(is_admin) 
 ) -> ReturnExerciseId:
     try:
         rowcount = await ExerciseController.delete_exercise(

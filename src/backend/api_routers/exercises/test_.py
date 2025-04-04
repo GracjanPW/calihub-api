@@ -54,6 +54,16 @@ def test_get_exercise_fail_not_found():
 
 
 def test_post_exercise_ok():
+    login_res = client.post("/api/auth/token", data={
+        "username":"admin@gmail.com",
+        "password":"adminpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
     exercise = {
         "name": "Deadlift Press",
         "description":"test exercise",
@@ -61,7 +71,7 @@ def test_post_exercise_ok():
         "equipment":[4],
         "difficulty": "novice"
     }
-    response = client.post("/api/exercises", json=exercise)
+    response = client.post("/api/exercises", json=exercise, headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 201
     json = response.json()
     valid = ReturnExerciseId(**json)
@@ -69,13 +79,34 @@ def test_post_exercise_ok():
 
 
 def test_post_exercise_fail_invalid_input():
+    login_res = client.post("/api/auth/token", data={
+        "username":"admin@gmail.com",
+        "password":"adminpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+    
+
     exercise = {
         "name": "Deadlift Press",
     }
-    response = client.post("/api/exercises", json=exercise)
+    response = client.post("/api/exercises", json=exercise, headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 422
 
 def test_post_exercise_fail_invalid_equipment():
+    login_res = client.post("/api/auth/token", data={
+        "username":"admin@gmail.com",
+        "password":"adminpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+    
     exercise = {
         "name": "Deadlift Press",
         "description":"test exercise",
@@ -83,10 +114,20 @@ def test_post_exercise_fail_invalid_equipment():
         "equipment":[200],
         "difficulty": "novice"
     }
-    response = client.post("/api/exercises", json=exercise)
+    response = client.post("/api/exercises", json=exercise, headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 400
 
 def test_update_exercise_ok():
+    login_res = client.post("/api/auth/token", data={
+        "username":"admin@gmail.com",
+        "password":"adminpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+    
     exercise_id = 1
     exercise = {
         "difficulty": "intermediate",
@@ -94,7 +135,7 @@ def test_update_exercise_ok():
         "muscle_groups": [2,5],
         "equipment": [2,6]
     }
-    response = client.put(f"/api/exercises/{exercise_id}", json=exercise)
+    response = client.put(f"/api/exercises/{exercise_id}", json=exercise, headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExerciseId(**json)
@@ -102,8 +143,18 @@ def test_update_exercise_ok():
 
 
 def test_detete_exercise_ok():
+    login_res = client.post("/api/auth/token", data={
+        "username":"admin@gmail.com",
+        "password":"adminpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+    
     exercise_id = 1
-    response = client.delete(f"/api/exercises/{exercise_id}")
+    response = client.delete(f"/api/exercises/{exercise_id}", headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExerciseId(**json)

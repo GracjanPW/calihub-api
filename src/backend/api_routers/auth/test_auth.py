@@ -17,7 +17,8 @@ user_login = {
 def test_login_fail_user_doesnt_exist():
     login_res = client.post("/api/auth/token", data=user_login)
     assert login_res.status_code == 401
-    assert "access_token" not in login_res.cookies
+    data = login_res.json()
+    assert "access_token" not in data
 
 
 def test_not_authed():
@@ -42,10 +43,13 @@ def test_register_fail():
 def test_login():
     login_res = client.post("/api/auth/token", data=user_login)
     assert login_res.status_code == 200
-    assert "access_token" in login_res.cookies
+    data = login_res.json()
+    assert "access_token" in data
 
-    client.cookies.set("access_token", login_res.cookies["access_token"])
-    whoami_res = client.get("/api/auth/whoami")
+    access_token = data['access_token']
+    token_type = data['token_type']
+    # client.cookies.set("access_token", login_res.cookies["access_token"])
+    whoami_res = client.get("/api/auth/whoami", headers={"Authorization":f"{token_type} {access_token}"})
     whoami_json = whoami_res.json()
     print(whoami_json)
     assert whoami_res.status_code == 200

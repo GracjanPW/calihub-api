@@ -1,17 +1,35 @@
 import base64
 import datetime
 import os
-from typing import Dict
+from typing import Annotated, Dict
 from uuid import UUID
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import OAuth2PasswordBearer
 import jwt
 from passlib.hash import bcrypt
 from fastapi import status
+import psycopg
+from pydantic import BaseModel
+
+from src.backend.db import get_db
 
 TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRE_MINUTES"))
 SECRET_KEY = os.getenv("SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
 
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+
+class UserJwt(BaseModel):
+    sub: UUID
+    email: str
+    role: str
+    exp: datetime.datetime
+
+class User(BaseModel):
+    id: UUID
+    email: str
+    role: str
 
 def generate_salt() -> str:
     return base64.b64encode(os.urandom(16)).decode('utf-8')
@@ -63,11 +81,36 @@ def verify_token(token: str) -> Dict:
         )
 
 
-def get_current_user(request: Request):
-    token = request.cookies.get("access_token")
+def get_current_user(request: Request, token: Annotated[str, Depends(oauth2_scheme)]):
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     user = verify_token(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
     return user
+
+async def get_active_user(user: Annotated[UserJwt, Depends(get_current_user)], conn = Depends(get_db)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    async with conn.cursor(row_factory=psycopg.rows.dict_row) as cursor:
+        await cursor.execute("SELECT id, email, role FROM users WHERE id = %s", (user["sub"],))
+        user = await cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        if user["role"] == "disabled":
+            raise HTTPException(status_code=403, detail="User is disabled")
+    user = User(**user)
+    # user = User(id=user["id"], email=user["email"], role=user["role"])
+    return user
+
+def is_admin(user: Annotated[User, Depends(get_active_user)]):
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return user
+
+def is_user(user: Annotated[User, Depends(get_active_user)]):
+    if user.role != "user":
+        raise HTTPException(status_code=403, detail="Not enough permissions")

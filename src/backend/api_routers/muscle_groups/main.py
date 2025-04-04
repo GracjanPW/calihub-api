@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status, Query
 
 from src.backend.api_routers.muscle_groups import controllers as MuscleGroupController 
 from src.backend.api_routers.muscle_groups.modals import CreateMuscleGroup, ReturnMuscleGroupId, ReturnMuscleGroups, ReturnMuscleGroup, UpdateMuscleGroup
+from src.backend.auth_lib.main import is_admin
 from src.backend.db import get_db
 
 
@@ -70,7 +71,8 @@ async def get_muscle_group(
 async def create_muscle_group(
     response:           Response,
     new_muscle_group:   CreateMuscleGroup,
-    conn =              Depends(get_db)
+    conn =              Depends(get_db),
+    _admin_user =       Depends(is_admin)
 ):
     try:
         res = await MuscleGroupController.create_muscle_group(
@@ -96,7 +98,8 @@ async def update_muscle_group(
     response:            Response,
     muscle_group_id:     int,
     muscle_group_update: UpdateMuscleGroup,
-    conn =               Depends(get_db)
+    conn =               Depends(get_db),
+    _admin_user =        Depends(is_admin)
 ):
     try:
         res = await MuscleGroupController.update_muscle_group(
@@ -122,7 +125,8 @@ async def update_muscle_group(
 async def delete_muscle_group(
     response:           Response,
     muscle_group_id:    int,
-    conn =              Depends(get_db)
+    conn =              Depends(get_db),
+    _admin_user =       Depends(is_admin)
 ):
     try:
         res = await MuscleGroupController.delete_muscle_group(

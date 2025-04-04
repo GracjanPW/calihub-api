@@ -1,4 +1,4 @@
-CREATE TYPE ROLE AS ENUM ('admin', 'user');
+CREATE TYPE ROLE AS ENUM ('admin', 'user', 'disabled');
 CREATE TYPE DIFFICULTY AS ENUM (
     'beginner', 
     'novice', 
