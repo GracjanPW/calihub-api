@@ -6,7 +6,17 @@ client = testclient.TestClient(app)
 
 
 def test_get_equipment_ok():
-    res = client.get("/api/equipment")
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
+    res = client.get("/api/equipment", headers={"Authorization":f"{token_type} {access_token}"})
 
     assert res.status_code == 200
 
@@ -17,7 +27,17 @@ def test_get_equipment_ok():
 
 
 def test_get_equipment_query_ok():
-    res = client.get("/api/equipment?search=back")
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
+    res = client.get("/api/equipment?search=back", headers={"Authorization":f"{token_type} {access_token}"})
 
     assert res.status_code == 200
 
@@ -28,8 +48,18 @@ def test_get_equipment_query_ok():
 
 
 def test_get_equipment_ok():
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
     id = 1
-    res = client.get(f"/api/equipment/{id}")
+    res = client.get(f"/api/equipment/{id}", headers={"Authorization":f"{token_type} {access_token}"})
 
     assert res.status_code == 200
 

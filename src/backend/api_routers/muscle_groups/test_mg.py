@@ -6,7 +6,17 @@ client = testclient.TestClient(app)
 
 
 def test_get_muscle_groups_ok():
-    res = client.get("/api/muscle_groups")
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
+    res = client.get("/api/muscle_groups", headers={"Authorization":f"{token_type} {access_token}"})
 
     assert res.status_code == 200
 
@@ -17,7 +27,17 @@ def test_get_muscle_groups_ok():
 
 
 def test_get_muscle_groups_query_ok():
-    res = client.get("/api/muscle_groups?search=back")
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
+    res = client.get("/api/muscle_groups?search=back", headers={"Authorization":f"{token_type} {access_token}"})
 
     assert res.status_code == 200
 
@@ -28,8 +48,18 @@ def test_get_muscle_groups_query_ok():
 
 
 def test_get_muscle_group_ok():
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
     id = 1
-    res = client.get(f"/api/muscle_groups/{id}")
+    res = client.get(f"/api/muscle_groups/{id}", headers={"Authorization":f"{token_type} {access_token}"})
 
     assert res.status_code == 200
 

@@ -363,6 +363,14 @@ async def seed():
                 ("admin@gmail.com", admin_hashed_password, "admin")
             )
 
+            # Insert regular user
+            user_password = "userpassword"
+            user_hashed_password = bcrypt.hash(user_password.encode())
+            await cursor.execute(
+                "INSERT INTO users (email, hashed_password, role) VALUES (%s, %s, %s) ON CONFLICT (email) DO NOTHING",
+                ("user@gmail.com", user_hashed_password, "user")
+            )
+            
             # Insert muscle groups
             await cursor.executemany(
                 "INSERT INTO muscle_groups (id, name) VALUES (%s, %s) ON CONFLICT (id) DO NOTHING",

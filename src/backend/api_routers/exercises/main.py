@@ -3,8 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from src.backend.api_routers.exercises import controller as ExerciseController
 from psycopg.errors import ForeignKeyViolation
 from src.backend.api_routers.exercises.modals import CreateExercise, ReturnExercise, ReturnExerciseId, ReturnExercises, UpdateExercise
-from src.backend.auth_lib.main import is_admin
+from src.backend.auth_lib.main import get_current_user, is_admin
 from src.backend.db import get_db
+from src.backend.redis import rate_limit_dependency
 
 router = APIRouter()
 
@@ -12,6 +13,7 @@ router = APIRouter()
 
 @router.get("/exercises", status_code=status.HTTP_200_OK)
 async def get_exercises(
+    user                          = Depends(get_current_user),   
     name:           Optional[str] = Query(None, alias="search", description="Search exercises by name"),
     muscle_group:   Optional[str] = Query(None, description="Filter by category"),
     equipment:      Optional[str] = Query(None, description="Filter by category"),
@@ -20,6 +22,8 @@ async def get_exercises(
     limit:          int           = Query(10, le=100, description="Number of items per page (max 100)"),
     conn                          = Depends(get_db)
 ) -> ReturnExercises:
+    rate_limit_dependency(user_id=user['sub'], user_quota=user['quota'])
+
     try:
         # Get exercises from controller with search, filters, and pagination
         res, total = await ExerciseController.get_exercises(
@@ -51,9 +55,12 @@ async def get_exercises(
 @router.get("/exercises/{exercise_id}", status_code=status.HTTP_200_OK)
 async def get_exercise(
     exercise_id:  int, 
-    response:     Response, 
+    response:     Response,
+    user =        Depends(get_current_user),
     conn =        Depends(get_db)
 ) -> ReturnExercise:
+    rate_limit_dependency(user_id=user['sub'], user_quota=user['quota'])
+
     try:
         # Find and return exercise with given id
         res = await ExerciseController.get_exercise(

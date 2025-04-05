@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status, Query
 
 from src.backend.api_routers.muscle_groups import controllers as MuscleGroupController 
 from src.backend.api_routers.muscle_groups.modals import CreateMuscleGroup, ReturnMuscleGroupId, ReturnMuscleGroups, ReturnMuscleGroup, UpdateMuscleGroup
-from src.backend.auth_lib.main import is_admin
+from src.backend.auth_lib.main import get_current_user, is_admin
 from src.backend.db import get_db
+from src.backend.redis import rate_limit_dependency
 
 
 router = APIRouter()
@@ -16,11 +17,13 @@ router = APIRouter()
 @router.get("/muscle_groups", status_code=status.HTTP_200_OK)
 async def get_muscle_groups(
     response:   Response,
+    user                        = Depends(get_current_user),
     name:       Optional[str]   = Query(alias="search", default=None, description="Search muscle groups by name"),
     limit:      int             = Query(default=10, le=100, description="Number of items per page (max 100)"),
     page:       int             = Query(default=1, ge=1, description="Page number"),
     conn                        = Depends(get_db)
 ) -> ReturnMuscleGroups:
+    rate_limit_dependency(user_id=user['sub'], user_quota=user['quota'])
     try:
         res, total = await MuscleGroupController.get_muscle_groups(
             conn = conn, 
@@ -48,8 +51,11 @@ async def get_muscle_groups(
 async def get_muscle_group(
     response:           Response,
     muscle_group_id:    int,
+    user =              Depends(get_current_user),
     conn =              Depends(get_db)
 ) -> ReturnMuscleGroup:
+    rate_limit_dependency(user_id=user['sub'], user_quota=user['quota'])
+    
     try:
         res = await MuscleGroupController.get_muscle_group(
             conn = conn,

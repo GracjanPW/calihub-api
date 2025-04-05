@@ -12,6 +12,7 @@ CREATE TABLE users (
     -- PUBLIC
     email TEXT NOT NULL UNIQUE,
     role ROLE NOT NULL DEFAULT 'user',
+    quota INT NOT NULL DEFAULT 100,
     -- PRIVATE
     hashed_password BYTEA NOT NULL,
 

@@ -28,7 +28,7 @@ async def get_admin_token(user=Depends(get_current_user), is_admin=Depends(is_ad
 async def sign_in(response: Response, form_data: Annotated[OAuth2PasswordRequestForm, Depends()], conn=Depends(get_db)):
     if form_data.username:
         async with conn.cursor(row_factory=psycopg.rows.dict_row) as cursor:
-            await cursor.execute("SELECT id, email, role, hashed_password FROM users WHERE email = %s", (form_data.username,))
+            await cursor.execute("SELECT id, email, role, hashed_password, quota FROM users WHERE email = %s", (form_data.username,))
             user = await cursor.fetchone()
 
         if not user:
@@ -40,17 +40,16 @@ async def sign_in(response: Response, form_data: Annotated[OAuth2PasswordRequest
         if not verify_password(form_data.password, hashed_password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        access_token = generate_token(user['id'], email=user['email'], role=user['role'])
+        access_token = generate_token(
+            sub   = user['id'], 
+            email = user['email'], 
+            role  = user['role'], 
+            quota = user['quota']
+        ,)
 
-        # TODO: need to check how andif i need to add SameSite=Lax or Strict
-        # response.set_cookie(
-        #     key="access_token",
-        #     value=access_token,
-        #     httponly=True,
-        #     secure=True,
-        # )
         response.status_code = 200
         response.headers.append("Cache-Control","no-store")
+        
         return {"access_token": access_token, "token_type": "Bearer"}
 
     response.status_code = 400

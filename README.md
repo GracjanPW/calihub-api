@@ -62,3 +62,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Run dev db
 `docker run --name calihub-api-postgres -e POSTGRES_PASSWORD=devpassword -d postgres`
+
+run dev redis
+`docker run -d --name redis -p 6379:6379 -v redis_data:/data redis --save 60 1 --loglevel warning`

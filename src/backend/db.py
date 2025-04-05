@@ -12,7 +12,6 @@ DATABASE_CONFIG = {
     "database": os.getenv("DB_NAME"),
 }
 
-print(DATABASE_CONFIG)
 # Create a global connection pool (but do not open it yet)
 pool = AsyncConnectionPool(
     f"postgres://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}", min_size=1, max_size=10, open=False)

@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status, Query
 
 from src.backend.api_routers.equipment import controllers as EquipmentController 
 from src.backend.api_routers.equipment.modals import CreateEquipment, ReturnEquipmentId, ReturnEquipmentAll, ReturnEquipment, UpdateEquipment
-from src.backend.auth_lib.main import is_admin
+from src.backend.auth_lib.main import get_current_user, is_admin
 from src.backend.db import get_db
+from src.backend.redis import rate_limit_dependency
 
 
 router = APIRouter()
@@ -16,11 +17,14 @@ router = APIRouter()
 @router.get("/equipment", status_code=status.HTTP_200_OK)
 async def get_equipment(
     response:   Response,
+    user =      Depends(get_current_user),
     name:       Optional[str]   = Query(alias="search", default=None, description="Search equipment by name"),
     limit:      int             = Query(default=10, le=100, description="Number of items per page (max 100)"),
     page:       int             = Query(default=1, ge=1, description="Page number"),
     conn                        = Depends(get_db)
 ) -> ReturnEquipmentAll:
+    rate_limit_dependency(user_id=user['sub'], user_quota=user['quota'])
+    
     try:
         res, total = await EquipmentController.get_equipment(
             conn = conn, 
@@ -48,8 +52,11 @@ async def get_equipment(
 async def get_equipment_by_id(
     response:       Response,
     equipment_id:   int,
+    user =          Depends(get_current_user),
     conn =          Depends(get_db)
 ) -> ReturnEquipment:
+    rate_limit_dependency(user_id=user['sub'], user_quota=user['quota'])
+
     try:
         res = await EquipmentController.get_equipment_by_id(
             conn = conn,

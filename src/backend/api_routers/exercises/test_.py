@@ -6,7 +6,17 @@ client = testclient.TestClient(app)
 
 
 def test_get_exercises_ok():
-    response = client.get("/api/exercises")
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
+    response = client.get("/api/exercises", headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExercises(**json)
@@ -15,7 +25,17 @@ def test_get_exercises_ok():
 
 
 def test_get_exercises_ok_search():
-    response = client.get("/api/exercises?search=bench%press")
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
+    response = client.get("/api/exercises?search=bench%press", headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExercises(**json)
@@ -24,9 +44,19 @@ def test_get_exercises_ok_search():
 
 
 def test_get_exercises_ok_page_limit():
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
     limit = 10
-    response1 = client.get(f"/api/exercises?limit={limit}&page=1")
-    response2 = client.get(f"/api/exercises?limit={limit}&page=2")
+    response1 = client.get(f"/api/exercises?limit={limit}&page=1", headers={"Authorization":f"{token_type} {access_token}"})
+    response2 = client.get(f"/api/exercises?limit={limit}&page=2", headers={"Authorization":f"{token_type} {access_token}"})
     json1 = response1.json()
     valid1 = ReturnExercises(**json1)
     json2 = response2.json()
@@ -36,8 +66,18 @@ def test_get_exercises_ok_page_limit():
 
 
 def test_get_exercise_ok():
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+    
     exercise_id = 1
-    response = client.get(f"/api/exercises/{exercise_id}")
+    response = client.get(f"/api/exercises/{exercise_id}", headers={"Authorization":f"{token_type} {access_token}"})
     assert response.status_code == 200
     json = response.json()
     valid = ReturnExercise(**json)
@@ -46,8 +86,18 @@ def test_get_exercise_ok():
 
 
 def test_get_exercise_fail_not_found():
+    login_res = client.post("/api/auth/token", data={
+        "username":"user@gmail.com",
+        "password":"userpassword"
+    })
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    access_token = data['access_token']
+    token_type = data['token_type']
+
     exercise_id = 200
-    response = client.get(f"/api/exercises/{exercise_id}")
+    response = client.get(f"/api/exercises/{exercise_id}", headers={"Authorization":f"{token_type} {access_token}"})
     json = response.json()
     assert response.status_code == 404
     assert json['message'] == 'Exercise not found'
